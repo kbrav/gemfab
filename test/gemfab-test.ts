@@ -3,10 +3,11 @@ import { ethers, artifacts, network } from 'hardhat'
 import { want, send, fail, snapshot, revert } from 'minihat'
 const { constants, BigNumber } = ethers
 
-import { test1D, test2D } from './helpers'
+import { test1D, test2D, actual } from './helpers'
 import { bounds as _bounds } from './bounds'
 const bounds = _bounds.gem
 import { TypedDataUtils } from 'ethers-eip712'
+
 
 const debug = require('debug')('gemfab:test')
 
@@ -44,9 +45,15 @@ describe('gemfab', () => {
     await send(gemfab.build, 'Mock Cash', 'CASH')
     gem = gem_type.attach(gemaddr)
 
+    chainId = await hh.network.config.chainId;
+    const dai_type = await ethers.getContractFactory('Dai', ali)
+    const dai = await dai_type.deploy(chainId)
+    // comment/uncomment this line to use a different token
+    gem = dai
+
+
     await snapshot(hh)
 
-    chainId = await hh.network.config.chainId;
 
     domain.chainId           = chainId;
     domain.verifyingContract = gem.address;
@@ -92,6 +99,22 @@ describe('gemfab', () => {
   });
 
   describe(' gas cost', () => {
+    after(async () => {
+      //console.log(JSON.stringify(actual, null, 2))
+      let names = ""
+      let res = ""
+      for( const name of Object.keys(actual) ) {
+        for( const prev of Object.keys(actual[name])) {
+          for( const next of Object.keys(actual[name][prev])) {
+            names += name + '-' + prev + '-' + next + ','
+            res += actual[name][prev][next] + ','
+          }
+        }
+      }
+      console.log(names)
+      console.log(res)
+
+    })
     async function check(gas, minGas, maxGas) {
       await want(gas.toNumber()).to.be.at.most(maxGas);
       if (gas.toNumber() < minGas) {

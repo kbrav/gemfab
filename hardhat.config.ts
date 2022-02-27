@@ -10,12 +10,25 @@ export default {
     sources: "./sol"
   },
   solidity: {
-    version: '0.8.10',
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 20000
-      }
-    }
+    compilers: [
+      {
+        version: "0.8.10",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 20000
+          }
+        },
+      },
+      {
+        version: "0.5.12",
+        settings: {
+          optimizer: {
+            enabled: false,
+            runs: 200
+          }
+        },
+      },
+    ],
   }
 }
